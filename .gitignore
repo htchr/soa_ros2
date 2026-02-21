@@ -1,0 +1,14 @@
+build/
+install/
+log/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+*.eggs/
+.vscode/
+.idea/
+*.swp
+*~
+*.bag
+COLCON_IGNORE

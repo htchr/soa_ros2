@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot name="soa" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="prefix"      default=""/>
+  <xacro:arg name="usb_port"    default="/dev/ttyACM0"/>
+  <xacro:arg name="leader_mode" default="false"/>
+  <xacro:arg name="use_sim"     default="false"/>
+
+  <xacro:include filename="$(find soa_description)/urdf/soa_macro.xacro"/>
+  <xacro:include filename="$(find soa_description)/urdf/soa_ros2_control.xacro"/>
+
+  <xacro:soa prefix="$(arg prefix)"/>
+
+  <xacro:soa_ros2_control
+    name="soa_system"
+    prefix="$(arg prefix)"
+    usb_port="$(arg usb_port)"
+    leader_mode="$(arg leader_mode)"
+    use_sim="$(arg use_sim)"/>
+
+</robot>

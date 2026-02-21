@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot name="dual_soa" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="left_usb_port"     default="/dev/ttyACM0"/>
+  <xacro:arg name="right_usb_port"    default="/dev/ttyACM1"/>
+  <xacro:arg name="left_leader_mode"  default="false"/>
+  <xacro:arg name="right_leader_mode" default="false"/>
+  <xacro:arg name="use_sim"           default="false"/>
+
+  <xacro:include filename="$(find soa_description)/urdf/soa_macro.xacro"/>
+  <xacro:include filename="$(find soa_description)/urdf/soa_ros2_control.xacro"/>
+
+  <!-- Shared root link -->
+  <link name="base_link"/>
+
+  <!-- Left arm: +Y from center -->
+  <joint name="left_base_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="left_base_link"/>
+    <origin xyz="0 0.15 0" rpy="0 0 0"/>
+  </joint>
+  <xacro:soa prefix="left_"/>
+  <xacro:soa_ros2_control
+    name="left_soa_system"
+    prefix="left_"
+    usb_port="$(arg left_usb_port)"
+    leader_mode="$(arg left_leader_mode)"
+    use_sim="$(arg use_sim)"/>
+
+  <!-- Right arm: -Y from center -->
+  <joint name="right_base_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_base_link"/>
+    <origin xyz="0 -0.15 0" rpy="0 0 0"/>
+  </joint>
+  <xacro:soa prefix="right_"/>
+  <xacro:soa_ros2_control
+    name="right_soa_system"
+    prefix="right_"
+    usb_port="$(arg right_usb_port)"
+    leader_mode="$(arg right_leader_mode)"
+    use_sim="$(arg use_sim)"/>
+
+</robot>

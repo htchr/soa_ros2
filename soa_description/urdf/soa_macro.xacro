@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="soa" params="prefix parent_link *origin">
+  <xacro:macro name="soa" params="prefix">
 
     <xacro:property name="effort_limit" value="10.0"/>
     <xacro:property name="velocity_limit" value="10.0"/>
@@ -307,12 +307,6 @@
     </link>
 
     <!-- ========== JOINTS ========== -->
-
-    <joint name="${prefix}base_joint" type="fixed">
-      <xacro:insert_block name="origin"/>
-      <parent link="${parent_link}"/>
-      <child link="${prefix}base_link"/>
-    </joint>
 
     <joint name="${prefix}shoulder_pan" type="revolute">
       <origin xyz="0.0388353 -8.97657e-09 0.0624" rpy="3.14159 4.18253e-17 -3.14159"/>

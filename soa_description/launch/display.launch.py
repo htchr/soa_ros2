@@ -20,13 +20,13 @@ def generate_launch_description():
     robot_arg = DeclareLaunchArgument(
         'robot',
         default_value='single',
-        description='Robot configuration to display: "single" or "dual"',
-        choices=['single', 'dual'],
+        description='Robot configuration to display: "single" or "bi"',
+        choices=['single', 'bi'],
     )
 
     robot = LaunchConfiguration('robot')
     is_single = IfCondition(PythonExpression(["'", robot, "' == 'single'"]))
-    is_dual = IfCondition(PythonExpression(["'", robot, "' == 'dual'"]))
+    is_bi = IfCondition(PythonExpression(["'", robot, "' == 'bi'"]))
 
     single_description = ParameterValue(
         Command([
@@ -36,10 +36,10 @@ def generate_launch_description():
         value_type=str,
     )
 
-    dual_description = ParameterValue(
+    bi_description = ParameterValue(
         Command([
             xacro_cmd, ' ',
-            PathJoinSubstitution([pkg_share, 'urdf', 'dual_soa.urdf.xacro']),
+            PathJoinSubstitution([pkg_share, 'urdf', 'bi_soa.urdf.xacro']),
         ]),
         value_type=str,
     )
@@ -52,12 +52,12 @@ def generate_launch_description():
         condition=is_single,
     )
 
-    rsp_dual = Node(
+    rsp_bi = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
-        parameters=[{'robot_description': dual_description}],
-        condition=is_dual,
+        parameters=[{'robot_description': bi_description}],
+        condition=is_bi,
     )
 
     jspg = Node(
@@ -76,7 +76,7 @@ def generate_launch_description():
     return LaunchDescription([
         robot_arg,
         rsp_single,
-        rsp_dual,
+        rsp_bi,
         jspg,
         rviz,
     ])

@@ -1,13 +1,13 @@
 moveit_setup_assistant_config:
   urdf:
     package: soa_description
-    relative_path: urdf/soa.urdf
+    relative_path: urdf/soa_kinematics.urdf.xacro
   srdf:
     relative_path: config/soa.srdf
   package_settings:
     author_name: jack
     author_email: jhat@uw.edu
-    generated_timestamp: 1771738407
+    generated_timestamp: 1771773044
   control_xacro:
     command:
       - position

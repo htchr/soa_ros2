@@ -16,6 +16,7 @@
         <joint name="elbow_flex"/>
         <joint name="wrist_flex"/>
         <joint name="wrist_roll"/>
+        <chain base_link="base_link" tip_link="gripper_link"/>
     </group>
     <group name="gripper">
         <joint name="gripper"/>
@@ -28,7 +29,7 @@
         <joint name="gripper" value="-0.1745"/>
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="end_effector" parent_link="moving_jaw_link" group="arm"/>
+    <end_effector name="end_effector" parent_link="gripper_link" group="gripper" parent_group="arm"/>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
     <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->

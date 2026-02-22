@@ -1,0 +1,71 @@
+# Rosetta Contract for SOA ACT Policy Deployment
+#
+# This contract is configured for deploying trained ACT policies on the SOA robot.
+# It matches the observation keys used during LeRobot training with lerobot-record.
+#
+# Training setup:
+#   - Front camera: USB camera (OpenCV), 1920x1080, 30fps, MJPG → observation.images.front
+#   - Side camera: RealSense, 640x480, 30fps → observation.images.side
+#   - Robot state: 6 DOF arm (shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, gripper)
+#
+# Deployment setup:
+#   - Observations: Read from ROS2 topics (joint states + 2 cameras)
+#   - Actions: Publish to /policy_actions (6D array), then split by action_relay_node
+
+robot_type: soa
+fps: 30
+max_duration_s: 300.0  # Maximum policy execution time (5 minutes)
+
+observations:
+  # Front camera observation (USB camera, trained at 1920x1080)
+  - key: observation.images.front
+    topic: /front_camera/image_raw/compressed
+    type: sensor_msgs/msg/CompressedImage
+    image:
+      resize: [1080, 1920]  # Match training resolution (height x width)
+      encoding: rgb8
+    align: {strategy: hold, stamp: header}
+    qos: {reliability: best_effort, history: keep_last, depth: 10}
+
+  # Side camera observation (RealSense, trained at 640x480)
+  - key: observation.images.side
+    topic: /side_camera/color/image_raw/compressed
+    type: sensor_msgs/msg/CompressedImage
+    image:
+      resize: [480, 640]  # Match training resolution (height x width)
+      encoding: rgb8
+    align: {strategy: hold, stamp: header}
+    qos: {reliability: best_effort, history: keep_last, depth: 10}
+
+  # Robot joint state observation (6 joints: 5 arm + 1 gripper)
+  # Custom decoder converts radians (from feetech_ros2_driver) to LeRobot-normalized
+  # range: [-100, 100] for arm joints, [0, 100] for gripper (matching training data).
+  - key: observation.state
+    topic: /joint_states
+    type: sensor_msgs/msg/JointState
+    selector:
+      names: [position.shoulder_pan, position.shoulder_lift, position.elbow_flex,
+              position.wrist_flex, position.wrist_roll, position.gripper]
+    decoder: soa_rosetta.soa_converters:decode_soa_joint_state
+    align: {strategy: hold, stamp: header}
+    qos: {reliability: reliable, history: keep_last, depth: 50}
+
+actions:
+  # Policy actions (6D: 5 arm joints + 1 gripper)
+  # Published to /policy_actions, then split by action_relay_node to:
+  #   - /arm_position_controller/commands (5D: shoulder_pan through wrist_roll)
+  #   - /gripper_controller/commands (1D: gripper)
+  # Custom encoder converts LeRobot-normalized actions back to radians for the controllers.
+  - key: action
+    publish:
+      topic: /policy_actions
+      type: std_msgs/msg/Float64MultiArray
+      qos: {reliability: reliable, history: keep_last, depth: 10}
+    selector:
+      names: [shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, gripper]
+    encoder: soa_rosetta.soa_converters:encode_soa_action
+    safety_behavior: hold  # Freeze robot on policy errors
+
+# MCAP storage format for potential recording during deployment
+recording:
+  storage: mcap

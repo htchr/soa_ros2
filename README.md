@@ -17,6 +17,20 @@ rosdep install --from-paths . --ignore-src -y
 1. Update the config settings in the `soa_bringup` package
 
 
+## TODO
+
+- [ ] soa moveit config
+- [ ] bi moveit config
+- [ ] soa bringup rviz config w/ cameras
+- [ ] bi bringup rviz config w/ cameras
+- [ ] soa teleop node
+- [ ] bi teleop node
+- [ ] soa rosetta node(s)
+- [ ] bi soa rosetta node(s)
+- [ ] soa gazebo sim
+- [ ] bi gazebo sim
+
+
 ## Acknowledgements 
 
 - [The Robot Studio SO101](https://github.com/TheRobotStudio/SO-ARM100)

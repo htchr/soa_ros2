@@ -7,6 +7,34 @@
   <xacro:arg name="right_leader_mode" default="false"/>
   <xacro:arg name="use_sim"           default="false"/>
 
+  <!-- Left arm calibration args (defaults match soa_ros2_control.xacro) -->
+  <xacro:arg name="left_shoulder_pan_id"      default="1"/>
+  <xacro:arg name="left_shoulder_pan_offset"  default="0"/>
+  <xacro:arg name="left_shoulder_lift_id"     default="2"/>
+  <xacro:arg name="left_shoulder_lift_offset" default="0"/>
+  <xacro:arg name="left_elbow_flex_id"        default="3"/>
+  <xacro:arg name="left_elbow_flex_offset"    default="0"/>
+  <xacro:arg name="left_wrist_flex_id"        default="4"/>
+  <xacro:arg name="left_wrist_flex_offset"    default="0"/>
+  <xacro:arg name="left_wrist_roll_id"        default="5"/>
+  <xacro:arg name="left_wrist_roll_offset"    default="0"/>
+  <xacro:arg name="left_gripper_id"           default="6"/>
+  <xacro:arg name="left_gripper_offset"       default="0"/>
+
+  <!-- Right arm calibration args (defaults match soa_ros2_control.xacro) -->
+  <xacro:arg name="right_shoulder_pan_id"      default="1"/>
+  <xacro:arg name="right_shoulder_pan_offset"  default="0"/>
+  <xacro:arg name="right_shoulder_lift_id"     default="2"/>
+  <xacro:arg name="right_shoulder_lift_offset" default="0"/>
+  <xacro:arg name="right_elbow_flex_id"        default="3"/>
+  <xacro:arg name="right_elbow_flex_offset"    default="0"/>
+  <xacro:arg name="right_wrist_flex_id"        default="4"/>
+  <xacro:arg name="right_wrist_flex_offset"    default="0"/>
+  <xacro:arg name="right_wrist_roll_id"        default="5"/>
+  <xacro:arg name="right_wrist_roll_offset"    default="0"/>
+  <xacro:arg name="right_gripper_id"           default="6"/>
+  <xacro:arg name="right_gripper_offset"       default="0"/>
+
   <xacro:include filename="$(find soa_description)/urdf/soa_macro.xacro"/>
   <xacro:include filename="$(find soa_description)/urdf/soa_ros2_control.xacro"/>
 
@@ -25,7 +53,19 @@
     prefix="left_"
     usb_port="$(arg left_usb_port)"
     leader_mode="$(arg left_leader_mode)"
-    use_sim="$(arg use_sim)"/>
+    use_sim="$(arg use_sim)"
+    shoulder_pan_id="$(arg left_shoulder_pan_id)"
+    shoulder_pan_offset="$(arg left_shoulder_pan_offset)"
+    shoulder_lift_id="$(arg left_shoulder_lift_id)"
+    shoulder_lift_offset="$(arg left_shoulder_lift_offset)"
+    elbow_flex_id="$(arg left_elbow_flex_id)"
+    elbow_flex_offset="$(arg left_elbow_flex_offset)"
+    wrist_flex_id="$(arg left_wrist_flex_id)"
+    wrist_flex_offset="$(arg left_wrist_flex_offset)"
+    wrist_roll_id="$(arg left_wrist_roll_id)"
+    wrist_roll_offset="$(arg left_wrist_roll_offset)"
+    gripper_id="$(arg left_gripper_id)"
+    gripper_offset="$(arg left_gripper_offset)"/>
 
   <!-- Right arm: -Y from center -->
   <joint name="right_base_joint" type="fixed">
@@ -39,6 +79,18 @@
     prefix="right_"
     usb_port="$(arg right_usb_port)"
     leader_mode="$(arg right_leader_mode)"
-    use_sim="$(arg use_sim)"/>
+    use_sim="$(arg use_sim)"
+    shoulder_pan_id="$(arg right_shoulder_pan_id)"
+    shoulder_pan_offset="$(arg right_shoulder_pan_offset)"
+    shoulder_lift_id="$(arg right_shoulder_lift_id)"
+    shoulder_lift_offset="$(arg right_shoulder_lift_offset)"
+    elbow_flex_id="$(arg right_elbow_flex_id)"
+    elbow_flex_offset="$(arg right_elbow_flex_offset)"
+    wrist_flex_id="$(arg right_wrist_flex_id)"
+    wrist_flex_offset="$(arg right_wrist_flex_offset)"
+    wrist_roll_id="$(arg right_wrist_roll_id)"
+    wrist_roll_offset="$(arg right_wrist_roll_offset)"
+    gripper_id="$(arg right_gripper_id)"
+    gripper_offset="$(arg right_gripper_offset)"/>
 
 </robot>

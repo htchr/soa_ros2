@@ -1,0 +1,73 @@
+# Shared USB camera parameters for SOA robot arms
+#
+# Structure:
+# - /**/ section contains shared defaults for all usb_cam nodes
+# - Per-camera sections (/<namespace>/<camera_name>) provide specific overrides
+#
+# Device paths should be explicitly configured per camera to avoid conflicts
+# in multi-camera setups.
+
+# Shared defaults for all usb_cam nodes
+/**:
+  ros__parameters:
+    framerate: 30.0
+    io_method: "mmap"
+    pixel_format: "mjpeg2rgb"
+    av_device_format: "YUV422P"
+    image_width: 640
+    image_height: 480
+    brightness: -1          # -1 = auto
+    contrast: -1            # -1 = auto
+    saturation: -1          # -1 = auto
+    sharpness: -1           # -1 = auto
+    gain: -1                # -1 = auto
+    auto_white_balance: true
+    white_balance: 4000
+    autoexposure: true
+    exposure: 100
+    autofocus: false
+    focus: -1               # -1 = auto
+    camera_info_url: ""     # Optional: path to camera calibration file
+
+# ============================================================================
+# Single follower / leader+follower scenarios
+# ============================================================================
+
+# Follower wrist camera (attached to gripper)
+/follower/wrist_cam:
+  ros__parameters:
+    video_device: "/dev/video0"
+    frame_id: "follower_gripper_frame_link"
+    camera_name: "wrist_cam"
+
+# Static overhead camera (USB)
+/static_camera/overhead_cam:
+  ros__parameters:
+    video_device: "/dev/video4"
+    frame_id: "overhead_cam_link"
+    camera_name: "overhead_cam"
+
+# ============================================================================
+# Bimanual follower scenarios
+# ============================================================================
+
+# Left follower wrist camera
+/left_follower/wrist_cam_left:
+  ros__parameters:
+    video_device: "/dev/video0"
+    frame_id: "follower_left_gripper_frame_link"
+    camera_name: "wrist_cam_left"
+
+# Right follower wrist camera
+/right_follower/wrist_cam_right:
+  ros__parameters:
+    video_device: "/dev/video2"
+    frame_id: "follower_right_gripper_frame_link"
+    camera_name: "wrist_cam_right"
+
+# Static overhead camera for bimanual setups
+/static_camera/overhead_cam:
+  ros__parameters:
+    video_device: "/dev/video4"
+    frame_id: "overhead_cam_link"
+    camera_name: "overhead_cam"

@@ -1,0 +1,25 @@
+# SOA bimanual hardware parameters
+# Single source of truth for ports, robot IDs, and calibration directories.
+# Calibration files live at: {calibration_dir}/{id}.json
+
+/**:
+  ros__parameters:
+    left_follower:
+      id: "soa-left-follower"
+      usb_port: "/dev/ttyACM0"
+      calibration_dir: "/home/ubuntu/.cache/soa_calibration"
+
+    right_follower:
+      id: "soa-right-follower"
+      usb_port: "/dev/ttyACM1"
+      calibration_dir: "/home/ubuntu/.cache/soa_calibration"
+
+    left_leader:
+      id: "soa-left-leader"
+      usb_port: "/dev/ttyACM2"
+      calibration_dir: "/home/ubuntu/.cache/soa_calibration"
+
+    right_leader:
+      id: "soa-right-leader"
+      usb_port: "/dev/ttyACM3"
+      calibration_dir: "/home/ubuntu/.cache/soa_calibration"

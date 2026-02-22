@@ -62,10 +62,20 @@ def _build_camera_nodes(context, *args, **kwargs):
 
         pkg, exe = TYPE_REGISTRY[cam_type]
 
-        # Per-node parameter overrides (name must match node's namespace/name path in YAML)
+        # Per-node parameter overrides: hardware identity from registry takes precedence
+        # over any shared defaults in the type-specific param_path YAML.
         overrides = {'camera_name': name}
         if cam_type == 'usb_camera':
-            overrides['frame_id'] = name
+            if 'frame_id' in cam:
+                overrides['frame_id'] = cam['frame_id']
+            if 'video_device' in cam:
+                overrides['video_device'] = cam['video_device']
+        elif cam_type == 'realsense2_camera':
+            overrides['camera_namespace'] = namespace
+            if 'serial_no' in cam:
+                overrides['serial_no'] = cam['serial_no']
+            if 'usb_port_id' in cam:
+                overrides['usb_port_id'] = cam['usb_port_id']
 
         nodes.append(Node(
             package=pkg,

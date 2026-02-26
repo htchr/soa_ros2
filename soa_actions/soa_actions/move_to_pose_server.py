@@ -21,7 +21,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
-from pymoveit2 import MoveIt2
+from pymoveit2 import MoveIt2, MoveIt2State
 
 from soa_interfaces.action import MoveToPose
 from soa_actions import soa_robot
@@ -83,6 +83,12 @@ class MoveToPoseServer(Node):
 
         self.get_logger().info('MoveToPose action server ready')
 
+    def _wait_until_executed(self):
+        """Wait for MoveIt2 execution without rclpy.spin_once() conflict."""
+        while self._moveit2.query_state() != MoveIt2State.IDLE:
+            time.sleep(0.1)
+        return self._moveit2.motion_suceeded
+
     def _execute_callback(self, goal_handle):
         self.get_logger().info('Received MoveToPose goal')
 
@@ -136,17 +142,31 @@ class MoveToPoseServer(Node):
             return result
 
         # --- Attempt 1: Full pose (position + orientation) ---
+        # Use plan_async() + execute() to avoid rclpy.spin_once() inside
+        # move_to_pose()/plan(), which conflicts with MultiThreadedExecutor.
         self.get_logger().info('Attempt 1: Full pose target')
-        self._moveit2.move_to_pose(
+        future = self._moveit2.plan_async(
             position=position,
             quat_xyzw=quat_xyzw,
             tolerance_position=tol_pos,
             tolerance_orientation=tol_orient,
+            start_joint_state=self._moveit2.joint_state,
         )
 
-        success = self._moveit2.wait_until_executed()
+        if future is not None:
+            while not future.done():
+                time.sleep(0.1)
+            trajectory = self._moveit2.get_trajectory(future)
+        else:
+            trajectory = None
 
-        if success and self._moveit2.motion_suceeded:
+        if trajectory is not None:
+            self._moveit2.execute(trajectory)
+            success = self._wait_until_executed()
+        else:
+            success = False
+
+        if success:
             self._publish_feedback(goal_handle, position)
             goal_handle.succeed()
             result.success = True
@@ -158,13 +178,26 @@ class MoveToPoseServer(Node):
         self.get_logger().info(
             'Full pose failed, Attempt 2: Position-only fallback'
         )
+        # Use plan_async() instead of plan() to avoid rclpy.spin_once()
         self._moveit2.clear_goal_constraints()
-        self._moveit2.set_position_goal(
+        future = self._moveit2.plan_async(
             position=position,
-            tolerance=2.0 * tol_pos,
+            tolerance_position=2.0 * tol_pos,
+            start_joint_state=self._moveit2.joint_state,
         )
-        trajectory = self._moveit2.plan()
 
+        if future is None:
+            goal_handle.abort()
+            result.success = False
+            result.message = 'Planning failed for both full pose and position-only'
+            self.get_logger().warn(result.message)
+            return result
+
+        # Wait for planning without rclpy.spin_once()
+        while not future.done():
+            time.sleep(0.1)
+
+        trajectory = self._moveit2.get_trajectory(future)
         if trajectory is None:
             goal_handle.abort()
             result.success = False
@@ -173,7 +206,7 @@ class MoveToPoseServer(Node):
             return result
 
         self._moveit2.execute(trajectory)
-        success = self._moveit2.wait_until_executed()
+        success = self._wait_until_executed()
 
         if success and self._moveit2.motion_suceeded:
             self._publish_feedback(goal_handle, position)
@@ -194,7 +227,15 @@ class MoveToPoseServer(Node):
         """Publish distance feedback from current EE pose to target."""
         feedback = MoveToPose.Feedback()
         try:
-            fk_result = self._moveit2.compute_fk()
+            # Use compute_fk_async() to avoid rclpy.spin_once() in compute_fk()
+            fk_future = self._moveit2.compute_fk_async()
+            if fk_future is not None:
+                while not fk_future.done():
+                    time.sleep(0.1)
+                fk_result = self._moveit2.get_compute_fk_result(fk_future)
+            else:
+                fk_result = None
+
             if fk_result is not None:
                 current = fk_result.pose.position
                 dx = current.x - target_position[0]

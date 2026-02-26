@@ -19,7 +19,6 @@ rosdep install --from-paths . --ignore-src -y
 
 ## TODO
 
-- [ ] soa moveit config
 - [ ] bi moveit config
 - [ ] soa bringup rviz config w/ cameras
 - [ ] bi bringup rviz config w/ cameras

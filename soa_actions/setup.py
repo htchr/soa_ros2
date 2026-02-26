@@ -24,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'move_to_pose_server = soa_actions.move_to_pose_server:main',
+            'gripper_server = soa_actions.gripper_server:main',
         ],
     },
 )

@@ -22,4 +22,9 @@ cameras:
     attached_to: follower
     video_device: /dev/video0
     frame_id: follower_gripper_frame_link
-
+  - name: overhead_cam
+    camera_type: realsense2_camera
+    param_path: soa_realsense2.yaml
+    attached_to: static_camera
+    # serial_no: ""      # Uncomment to select by serial (use rs-enumerate-devices)
+    # usb_port_id: ""    # Uncomment to select by USB port (e.g., "2-1")

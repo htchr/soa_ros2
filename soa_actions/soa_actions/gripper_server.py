@@ -2,14 +2,14 @@
 """
 Gripper action server for the SOA arm.
 
-Uses pymoveit2 GripperInterface to control the gripper joint position.
+Uses pymoveit2 MoveIt2 to control the gripper joint position via the gripper
+JointTrajectoryController (FollowJointTrajectory action interface).
 
 Usage:
     ros2 run soa_actions gripper_server
 """
 
 import time
-from threading import Thread
 
 import rclpy
 from rclpy.action import ActionServer
@@ -17,7 +17,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
-from pymoveit2 import GripperInterface
+from pymoveit2 import MoveIt2
 
 from soa_interfaces.action import Gripper
 from soa_actions import soa_robot
@@ -31,15 +31,14 @@ class GripperServer(Node):
         # Callback group for pymoveit2 (must be reentrant)
         self._cb_group = ReentrantCallbackGroup()
 
-        # Initialize gripper interface
-        self._gripper = GripperInterface(
+        # Initialize MoveIt2 for the gripper group
+        self._moveit2 = MoveIt2(
             node=self,
-            gripper_joint_names=soa_robot.gripper_joint_names(),
-            open_gripper_joint_positions=soa_robot.OPEN_GRIPPER_JOINT_POSITIONS,
-            closed_gripper_joint_positions=soa_robot.CLOSED_GRIPPER_JOINT_POSITIONS,
-            gripper_group_name=soa_robot.MOVE_GROUP_GRIPPER,
+            joint_names=soa_robot.gripper_joint_names(),
+            base_link_name=soa_robot.base_link_name(),
+            end_effector_name=soa_robot.end_effector_name(),
+            group_name=soa_robot.MOVE_GROUP_GRIPPER,
             callback_group=self._cb_group,
-            gripper_command_action_name='gripper_controller/gripper_cmd',
         )
 
         # Create action server
@@ -63,12 +62,15 @@ class GripperServer(Node):
 
         # Publish initial feedback
         feedback = Gripper.Feedback()
-        feedback.current_position = target_position  # Will be updated after motion
+        feedback.current_position = target_position
         goal_handle.publish_feedback(feedback)
 
-        # Move gripper to target position
-        self._gripper.move_to_position(target_position)
-        self._gripper.wait_until_executed()
+        # Move gripper to target position via MoveIt2 (FollowJointTrajectory)
+        self._moveit2.move_to_configuration(
+            joint_positions=[target_position],
+            joint_names=soa_robot.gripper_joint_names(),
+        )
+        self._moveit2.wait_until_executed()
 
         # Publish final feedback
         feedback.current_position = target_position

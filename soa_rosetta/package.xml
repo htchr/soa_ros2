@@ -3,20 +3,15 @@
 <package format="3">
   <name>soa_rosetta</name>
   <version>0.0.0</version>
-  <description>Config files and scripts for using rosetta packages with LeRobot policies on the SOA robot</description>
+  <description>SOA robot Rosetta contracts for LeRobot policy inference</description>
   <maintainer email="42076119+htchr@users.noreply.github.com">ubuntu</maintainer>
   <license>Apache-2.0</license>
 
-  <!-- Python runtime -->
-  <exec_depend>rclpy</exec_depend>
-
-  <!-- ROS2 message types used by the action relay node and contract -->
-  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>rosetta</exec_depend>
+  <exec_depend>lerobot_robot_rosetta</exec_depend>
+  <exec_depend>rosetta_interfaces</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
-
-  <!-- Python libraries used by converters -->
-  <exec_depend>python3-numpy</exec_depend>
-  <exec_depend>rosidl_runtime_py</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

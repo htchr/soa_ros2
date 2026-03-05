@@ -67,7 +67,7 @@ def _make_xacro_cmd(xacro_file: str, usb_port: str, leader_mode: str,
     ])
 
 
-def _make_spawner_chain(controllers: list, cm_namespace: str) -> list:
+def _make_spawner_chain(controllers: list, cm_namespace: str, inactive: set = None) -> list:
     """Build a sequenced list of controller spawner nodes.
 
     Controllers are spawned one after another using OnProcessExit handlers
@@ -76,13 +76,18 @@ def _make_spawner_chain(controllers: list, cm_namespace: str) -> list:
     Args:
         controllers: List of controller names to spawn in order.
         cm_namespace: Namespace of the controller_manager to target.
+        inactive: Set of controller names to spawn in inactive state.
     """
+    inactive = inactive or set()
     spawners = []
     for name in controllers:
+        args = [name, '--controller-manager', f'/{cm_namespace}/controller_manager']
+        if name in inactive:
+            args.append('--inactive')
         spawners.append(Node(
             package='controller_manager',
             executable='spawner',
-            arguments=[name, '--controller-manager', f'/{cm_namespace}/controller_manager'],
+            arguments=args,
             output='screen',
         ))
 
@@ -105,6 +110,7 @@ def launch_setup(context, *args, **kwargs):
     leader = context.launch_configurations['leader']
     display = context.launch_configurations['display']
     cameras = context.launch_configurations['cameras']
+    controller_mode = context.launch_configurations['controller']
 
     bringup_share = get_package_share_directory('soa_bringup')
     description_share = get_package_share_directory('soa_description')
@@ -163,9 +169,17 @@ def launch_setup(context, *args, **kwargs):
         parameters=[follower_robot_description, follower_controllers_yaml],
     )
 
+    if controller_mode == 'forward':
+        active = ['arm_fwd_controller', 'gripper_fwd_controller']
+        inactive = {'arm_controller', 'gripper_controller'}
+    else:
+        active = ['arm_controller', 'gripper_controller']
+        inactive = {'arm_fwd_controller', 'gripper_fwd_controller'}
+
     follower_spawners = _make_spawner_chain(
-        ['joint_state_broadcaster', 'arm_controller', 'gripper_controller'],
+        ['joint_state_broadcaster'] + active + list(inactive),
         cm_namespace='follower',
+        inactive=inactive,
     )
 
     all_actions = [follower_rsp, follower_cm] + follower_spawners
@@ -289,6 +303,12 @@ def generate_launch_description():
             default_value='true',
             description='Launch camera nodes (usb_cam / realsense2_camera). '
                         'Cameras are always on the follower arm only.',
+        ),
+        DeclareLaunchArgument(
+            'controller',
+            default_value='forward',
+            description='Controller type: "jtc" (JointTrajectory) or '
+                        '"forward" (ForwardCommand).',
         ),
         OpaqueFunction(function=launch_setup),
     ])

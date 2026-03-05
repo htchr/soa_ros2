@@ -1,7 +1,7 @@
 robot_type: soa
 
 fps: 30
-max_duration_s: 90.0
+max_duration_s: 10.0
 
 observations:
   # Wrist USB cam -> model's observation.images.front

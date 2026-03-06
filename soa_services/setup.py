@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'controller_switcher = soa_services.controller_switcher:main',
         ],
     },
 )

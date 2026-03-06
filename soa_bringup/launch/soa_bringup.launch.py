@@ -182,7 +182,15 @@ def launch_setup(context, *args, **kwargs):
         inactive=inactive,
     )
 
-    all_actions = [follower_rsp, follower_cm] + follower_spawners
+    controller_switcher = Node(
+        package='soa_services',
+        executable='controller_switcher',
+        namespace='follower',
+        parameters=[{'initial_mode': controller_mode}],
+        output='screen',
+    )
+
+    all_actions = [follower_rsp, follower_cm, controller_switcher] + follower_spawners
 
     # --- Leader nodes (only when leader:=true) ---
     if leader == 'true':

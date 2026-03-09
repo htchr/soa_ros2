@@ -190,7 +190,14 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    all_actions = [follower_rsp, follower_cm, controller_switcher] + follower_spawners
+    save_pose_node = Node(
+        package='soa_services',
+        executable='save_pose',
+        namespace='follower',
+        output='screen',
+    )
+
+    all_actions = [follower_rsp, follower_cm, controller_switcher, save_pose_node] + follower_spawners
 
     # --- Leader nodes (only when leader:=true) ---
     if leader == 'true':

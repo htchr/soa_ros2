@@ -252,12 +252,22 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
         )
 
+        teleop_node = Node(
+            package='soa_teleop',
+            executable='teleop_node',
+            name='teleop_node',
+            output='screen',
+        )
+
         all_actions += [leader_rsp, leader_cm] + leader_spawners
-        all_actions += [follower_static_tf, leader_static_tf]
+        all_actions += [follower_static_tf, leader_static_tf, teleop_node]
 
     # --- Display (RViz) ---
     if display == 'true':
-        rviz_config = os.path.join(bringup_share, 'rviz', 'soa.rviz')
+        rviz_config = os.path.join(
+            bringup_share, 'rviz',
+            'soa_leader_follower.rviz' if leader == 'true' else 'soa.rviz'
+        )
         rviz = Node(
             package='rviz2',
             executable='rviz2',

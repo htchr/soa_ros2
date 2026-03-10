@@ -19,6 +19,7 @@ find_package(sensor_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/MoveToPose.action"
   "action/Gripper.action"
+  "action/MoveToJointStates.action"
   "srv/SwitchController.srv"
   "srv/SavePose.srv"
   "srv/SaveJointStates.srv"

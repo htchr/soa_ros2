@@ -17,7 +17,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
-from pymoveit2 import MoveIt2
+from pymoveit2 import MoveIt2, MoveIt2State
 
 from soa_interfaces.action import Gripper
 from soa_actions import soa_robot
@@ -52,6 +52,12 @@ class GripperServer(Node):
 
         self.get_logger().info('Gripper action server ready')
 
+    def _wait_until_executed(self):
+        """Wait for MoveIt2 execution without rclpy.spin_once() conflict."""
+        while self._moveit2.query_state() != MoveIt2State.IDLE:
+            time.sleep(0.1)
+        return self._moveit2.motion_suceeded
+
     def _execute_callback(self, goal_handle):
         self.get_logger().info('Received Gripper goal')
 
@@ -65,19 +71,38 @@ class GripperServer(Node):
         feedback.current_position = target_position
         goal_handle.publish_feedback(feedback)
 
-        # Move gripper to target position via MoveIt2 (FollowJointTrajectory)
-        self._moveit2.move_to_configuration(
+        # Plan asynchronously (avoids rclpy.spin_once() inside executor callback)
+        future = self._moveit2.plan_async(
             joint_positions=[target_position],
             joint_names=soa_robot.gripper_joint_names(),
         )
-        self._moveit2.wait_until_executed()
+        if future is None:
+            goal_handle.abort()
+            result.success = False
+            result.message = 'Planning failed: could not get plan future'
+            self.get_logger().error(result.message)
+            return result
+
+        while not future.done():
+            time.sleep(0.1)
+
+        trajectory = self._moveit2.get_trajectory(future)
+        if trajectory is None:
+            goal_handle.abort()
+            result.success = False
+            result.message = 'Planning failed: no trajectory returned'
+            self.get_logger().error(result.message)
+            return result
+
+        self._moveit2.execute(trajectory)
+        success = self._wait_until_executed()
 
         # Publish final feedback
         feedback.current_position = target_position
         goal_handle.publish_feedback(feedback)
 
         goal_handle.succeed()
-        result.success = True
+        result.success = success
         result.message = f'Gripper moved to position {target_position:.4f}'
         self.get_logger().info(result.message)
         return result

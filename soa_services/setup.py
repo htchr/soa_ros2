@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'controller_switcher = soa_services.controller_switcher:main',
             'save_pose = soa_services.save_pose:main',
+            'save_joint_states = soa_services.save_joint_states:main',
         ],
     },
 )

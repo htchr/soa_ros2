@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'pick_and_place = soa_apps.pick_and_place:main',
+            'go_to_poses = soa_apps.go_to_poses:main',
         ],
     },
 )

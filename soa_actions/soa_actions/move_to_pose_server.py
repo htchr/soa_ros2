@@ -37,8 +37,9 @@ class MoveToPoseServer(Node):
         self.declare_parameter('max_acceleration', 0.5)
         self.declare_parameter('tolerance_position', 0.01)
         self.declare_parameter('tolerance_orientation', 0.1)
-        self.declare_parameter('num_planning_attempts', 10)
-        self.declare_parameter('allowed_planning_time', 5.0)
+        self.declare_parameter('tolerance_orientation_relaxed', 0.5)
+        self.declare_parameter('num_planning_attempts', 5)
+        self.declare_parameter('allowed_planning_time', 3.0)
         self.declare_parameter('max_reach', 0.4)
 
         # Callback group for pymoveit2 (must be reentrant)
@@ -89,6 +90,42 @@ class MoveToPoseServer(Node):
             time.sleep(0.1)
         return self._moveit2.motion_suceeded
 
+    def _plan_and_execute(self, position, quat_xyzw=None,
+                          tol_pos=0.01, tol_orient=0.1,
+                          planning_time=None) -> bool:
+        """Plan and execute a single motion attempt. Returns True on success."""
+        base_time = (
+            self.get_parameter('allowed_planning_time')
+            .get_parameter_value().double_value
+        )
+        self._moveit2.allowed_planning_time = (
+            planning_time if planning_time is not None else base_time
+        )
+        self._moveit2.clear_goal_constraints()
+
+        kwargs = dict(
+            position=position,
+            tolerance_position=tol_pos,
+            start_joint_state=self._moveit2.joint_state,
+        )
+        if quat_xyzw is not None:
+            kwargs['quat_xyzw'] = quat_xyzw
+            kwargs['tolerance_orientation'] = tol_orient
+
+        future = self._moveit2.plan_async(**kwargs)
+        if future is None:
+            return False
+
+        while not future.done():
+            time.sleep(0.1)
+
+        trajectory = self._moveit2.get_trajectory(future)
+        if trajectory is None:
+            return False
+
+        self._moveit2.execute(trajectory)
+        return self._wait_until_executed()
+
     def _execute_callback(self, goal_handle):
         self.get_logger().info('Received MoveToPose goal')
 
@@ -107,6 +144,14 @@ class MoveToPoseServer(Node):
         )
         tol_orient = (
             self.get_parameter('tolerance_orientation')
+            .get_parameter_value().double_value
+        )
+        tol_orient_relaxed = (
+            self.get_parameter('tolerance_orientation_relaxed')
+            .get_parameter_value().double_value
+        )
+        planning_time = (
+            self.get_parameter('allowed_planning_time')
             .get_parameter_value().double_value
         )
 
@@ -141,86 +186,45 @@ class MoveToPoseServer(Node):
             self.get_logger().warn(result.message)
             return result
 
-        # --- Attempt 1: Full pose (position + orientation) ---
-        # Use plan_async() + execute() to avoid rclpy.spin_once() inside
-        # move_to_pose()/plan(), which conflicts with MultiThreadedExecutor.
-        self.get_logger().info('Attempt 1: Full pose target')
-        future = self._moveit2.plan_async(
-            position=position,
-            quat_xyzw=quat_xyzw,
-            tolerance_position=tol_pos,
-            tolerance_orientation=tol_orient,
-            start_joint_state=self._moveit2.joint_state,
-        )
+        # --- 4-attempt tolerance cascade ---
+        attempts = [
+            # (label, quat_xyzw, tol_pos, tol_orient, planning_time)
+            ('Attempt 1: full pose (tight)',
+             quat_xyzw, tol_pos, tol_orient, planning_time),
+            ('Attempt 2: full pose (relaxed orientation)',
+             quat_xyzw, tol_pos, tol_orient_relaxed, planning_time),
+            ('Attempt 3: position-only',
+             None, tol_pos * 2, None, planning_time + 2.0),
+        ]
 
-        if future is not None:
-            while not future.done():
-                time.sleep(0.1)
-            trajectory = self._moveit2.get_trajectory(future)
-        else:
-            trajectory = None
+        success_messages = [
+            'Reached target: full pose (tight)',
+            'Reached target: full pose (relaxed orientation)',
+            'Reached target: position-only IK (orientation ignored)',
+        ]
 
-        if trajectory is not None:
-            self._moveit2.execute(trajectory)
-            success = self._wait_until_executed()
-        else:
-            success = False
+        for i, (label, quat, tp, to, pt) in enumerate(attempts):
+            self.get_logger().info(label)
+            success = self._plan_and_execute(
+                position=position,
+                quat_xyzw=quat,
+                tol_pos=tp,
+                tol_orient=to if to is not None else tol_orient,
+                planning_time=pt,
+            )
+            if success:
+                self._publish_feedback(goal_handle, position)
+                goal_handle.succeed()
+                result.success = True
+                result.message = success_messages[i]
+                self.get_logger().info(result.message)
+                return result
+            self.get_logger().warn(f'{label} — failed')
 
-        if success:
-            self._publish_feedback(goal_handle, position)
-            goal_handle.succeed()
-            result.success = True
-            result.message = 'Reached target with full pose'
-            self.get_logger().info(result.message)
-            return result
-
-        # --- Attempt 2: Position-only fallback (5-DOF limitation) ---
-        self.get_logger().info(
-            'Full pose failed, Attempt 2: Position-only fallback'
-        )
-        # Use plan_async() instead of plan() to avoid rclpy.spin_once()
-        self._moveit2.clear_goal_constraints()
-        future = self._moveit2.plan_async(
-            position=position,
-            tolerance_position=2.0 * tol_pos,
-            start_joint_state=self._moveit2.joint_state,
-        )
-
-        if future is None:
-            goal_handle.abort()
-            result.success = False
-            result.message = 'Planning failed for both full pose and position-only'
-            self.get_logger().warn(result.message)
-            return result
-
-        # Wait for planning without rclpy.spin_once()
-        while not future.done():
-            time.sleep(0.1)
-
-        trajectory = self._moveit2.get_trajectory(future)
-        if trajectory is None:
-            goal_handle.abort()
-            result.success = False
-            result.message = 'Planning failed for both full pose and position-only'
-            self.get_logger().warn(result.message)
-            return result
-
-        self._moveit2.execute(trajectory)
-        success = self._wait_until_executed()
-
-        if success and self._moveit2.motion_suceeded:
-            self._publish_feedback(goal_handle, position)
-            goal_handle.succeed()
-            result.success = True
-            result.message = 'Reached target with position-only IK (orientation ignored)'
-            self.get_logger().info(result.message)
-            return result
-
-        # Both attempts failed
         goal_handle.abort()
         result.success = False
-        result.message = 'Execution failed after position-only planning'
-        self.get_logger().warn(result.message)
+        result.message = 'Planning failed for all 3 attempts'
+        self.get_logger().error(result.message)
         return result
 
     def _publish_feedback(self, goal_handle, target_position):

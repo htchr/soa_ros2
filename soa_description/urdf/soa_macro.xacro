@@ -313,7 +313,7 @@
       <parent link="${prefix}base_link"/>
       <child link="${prefix}shoulder_link"/>
       <axis xyz="0 0 1"/>
-      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.91986" upper="1.91986"/>
+      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-2.04786" upper="2.04786"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
 
@@ -322,7 +322,7 @@
       <parent link="${prefix}shoulder_link"/>
       <child link="${prefix}upper_arm_link"/>
       <axis xyz="0 0 1"/>
-      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.74533" upper="1.74533"/>
+      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.89089" upper="1.89089"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
 
@@ -331,7 +331,7 @@
       <parent link="${prefix}upper_arm_link"/>
       <child link="${prefix}lower_arm_link"/>
       <axis xyz="0 0 1"/>
-      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.69" upper="1.69"/>
+      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.69021" upper="1.69021"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
 
@@ -340,7 +340,7 @@
       <parent link="${prefix}lower_arm_link"/>
       <child link="${prefix}wrist_link"/>
       <axis xyz="0 0 1"/>
-      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.65806" upper="1.65806"/>
+      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-1.78913" upper="1.78913"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
 
@@ -349,7 +349,7 @@
       <parent link="${prefix}wrist_link"/>
       <child link="${prefix}gripper_link"/>
       <axis xyz="0 0 1"/>
-      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-2.74385" upper="2.84121"/>
+      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-2.99306" upper="2.99306"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
 
@@ -358,7 +358,7 @@
       <parent link="${prefix}gripper_link"/>
       <child link="${prefix}moving_jaw_link"/>
       <axis xyz="0 0 1"/>
-      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-0.174533" upper="1.74533"/>
+      <limit effort="${effort_limit}" velocity="${velocity_limit}" lower="-0.28839" upper="1.85050"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
 

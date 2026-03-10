@@ -27,11 +27,11 @@ from soa_actions import soa_robot
 
 # Joint limits from soa_description/urdf/soa_macro.xacro
 _JOINT_LIMITS = {
-    'shoulder_pan':  (-1.92, 1.92),
-    'shoulder_lift': (-1.75, 1.75),
-    'elbow_flex':    (-1.69, 1.69),
-    'wrist_flex':    (-1.66, 1.66),
-    'wrist_roll':    (-2.74, 2.84),
+    'shoulder_pan':  (-2.04786, 2.04786),
+    'shoulder_lift': (-1.89089, 1.89089),
+    'elbow_flex':    (-1.69021, 1.69021),
+    'wrist_flex':    (-1.78913, 1.78913),
+    'wrist_roll':    (-2.99306, 2.99306),
 }
 
 

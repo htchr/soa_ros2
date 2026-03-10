@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'go_to_poses = soa_apps.go_to_poses:main',
+            'go_to_joint_states = soa_apps.go_to_joint_states:main',
         ],
     },
 )

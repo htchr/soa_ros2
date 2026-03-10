@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""
+Iterate through a CSV of joint states and drive the SOA arm + gripper to each row in order.
+
+Each row in the CSV specifies all 5 arm joint positions plus a gripper position.
+For every row: move arm to joint configuration, then set the gripper position.
+
+CSV format: shoulder_pan,shoulder_lift,elbow_flex,wrist_flex,wrist_roll,gripper (with header)
+
+Prerequisites:
+    # 1. Launch the MoveIt stack:
+    ros2 launch soa_moveit_config soa_moveit_bringup.launch.py
+
+    # 2. Start the action servers:
+    ros2 run soa_actions move_to_joint_states_server
+    ros2 run soa_actions gripper_server
+
+    # 3. Run this node (default CSV path):
+    ros2 run soa_apps go_to_joint_states
+
+    # Or with a custom CSV path:
+    ros2 run soa_apps go_to_joint_states --ros-args -p csv_path:=/path/to/joints.csv
+"""
+
+import csv
+
+import rclpy
+from rclpy.action import ActionClient
+from rclpy.node import Node
+
+from soa_interfaces.action import Gripper, MoveToJointStates
+
+
+DEFAULT_CSV_PATH = '/home/ubuntu/techin517/soa_ws/joints.csv'
+
+ARM_JOINTS = ['shoulder_pan', 'shoulder_lift', 'elbow_flex', 'wrist_flex', 'wrist_roll']
+
+
+def load_rows(path: str) -> list:
+    """Parse CSV file and return a list of dicts (one per row)."""
+    with open(path, newline='') as f:
+        return list(csv.DictReader(f))
+
+
+class GoToJointStates(Node):
+
+    def __init__(self):
+        super().__init__('go_to_joint_states')
+
+        self.declare_parameter('csv_path', DEFAULT_CSV_PATH)
+
+        self._joint_client = ActionClient(self, MoveToJointStates, 'move_to_joint_states')
+        self._gripper_client = ActionClient(self, Gripper, 'gripper_command')
+
+    def send_joint_goal(self, joint_positions: list, joint_names: list, label: str = '') -> bool:
+        """Send a MoveToJointStates goal and block until the result is received."""
+        goal = MoveToJointStates.Goal()
+        goal.joint_positions = joint_positions
+        goal.joint_names = joint_names
+
+        self.get_logger().info(
+            f'Sending joint goal ({label}): '
+            + ', '.join(f'{n}={p:.4f}' for n, p in zip(joint_names, joint_positions))
+        )
+
+        self._joint_client.wait_for_server()
+        future = self._joint_client.send_goal_async(
+            goal, feedback_callback=self._joint_feedback_callback
+        )
+        rclpy.spin_until_future_complete(self, future)
+
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().error('Joint goal rejected')
+            return False
+
+        result_future = goal_handle.get_result_async()
+        rclpy.spin_until_future_complete(self, result_future)
+
+        result = result_future.result().result
+        if result.success:
+            self.get_logger().info(f'Joint goal succeeded: {result.message}')
+        else:
+            self.get_logger().error(f'Joint goal failed: {result.message}')
+        return result.success
+
+    def send_gripper_goal(self, target_position: float, label: str = '') -> bool:
+        """Send a Gripper goal and block until the result is received."""
+        goal = Gripper.Goal()
+        goal.target_position = target_position
+
+        self.get_logger().info(
+            f'Sending gripper goal ({label}): position={target_position:.4f}'
+        )
+
+        self._gripper_client.wait_for_server()
+        future = self._gripper_client.send_goal_async(
+            goal, feedback_callback=self._gripper_feedback_callback
+        )
+        rclpy.spin_until_future_complete(self, future)
+
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().error('Gripper goal rejected')
+            return False
+
+        result_future = goal_handle.get_result_async()
+        rclpy.spin_until_future_complete(self, result_future)
+
+        result = result_future.result().result
+        if result.success:
+            self.get_logger().info(f'Gripper goal succeeded: {result.message}')
+        else:
+            self.get_logger().error(f'Gripper goal failed: {result.message}')
+        return result.success
+
+    def _joint_feedback_callback(self, feedback_msg):
+        error = feedback_msg.feedback.max_joint_error
+        self.get_logger().info(f'  Max joint error: {error:.4f} rad')
+
+    def _gripper_feedback_callback(self, feedback_msg):
+        position = feedback_msg.feedback.current_position
+        self.get_logger().info(f'  Gripper position: {position:.4f}')
+
+    def run(self):
+        """Load joint states from CSV and execute each row in order."""
+        csv_path = self.get_parameter('csv_path').get_parameter_value().string_value
+        self.get_logger().info(f'Loading joint states from: {csv_path}')
+
+        rows = load_rows(csv_path)
+        self.get_logger().info(f'Loaded {len(rows)} row(s)')
+
+        self.get_logger().info('=== Starting go_to_joint_states sequence ===')
+
+        for i, row in enumerate(rows):
+            self.get_logger().info(f'--- Row {i + 1}/{len(rows)} ---')
+
+            # Move arm to joint configuration
+            positions = [float(row[j]) for j in ARM_JOINTS]
+            success = self.send_joint_goal(positions, ARM_JOINTS, label=f'row {i}')
+            if not success:
+                self.get_logger().error(f'Arm goal failed at row {i}. Aborting.')
+                return
+
+            # Set gripper position
+            success = self.send_gripper_goal(float(row['gripper']), label=f'row {i} gripper')
+            if not success:
+                self.get_logger().error(f'Gripper goal failed at row {i}. Aborting.')
+                return
+
+        self.get_logger().info('=== go_to_joint_states sequence complete ===')
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = GoToJointStates()
+    try:
+        node.run()
+    except KeyboardInterrupt:
+        pass
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

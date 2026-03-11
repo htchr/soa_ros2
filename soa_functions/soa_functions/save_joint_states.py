@@ -8,7 +8,7 @@ The joint state positions are recorded with column headers derived from the join
 names in the JointState message.
 
 Can be run standalone without a namespace argument:
-    ros2 run soa_services save_joint_states
+    ros2 run soa_functions save_joint_states
 
 Services:
     /follower/save_joint_states (soa_interfaces/srv/SaveJointStates)

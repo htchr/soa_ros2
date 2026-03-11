@@ -6,7 +6,7 @@ Uses pymoveit2 MoveIt2 to control the gripper joint position via the gripper
 JointTrajectoryController (FollowJointTrajectory action interface).
 
 Usage:
-    ros2 run soa_actions gripper_server
+    ros2 run soa_functions gripper_server
 """
 
 import time
@@ -20,7 +20,7 @@ from rclpy.node import Node
 from pymoveit2 import MoveIt2, MoveIt2State
 
 from soa_interfaces.action import Gripper
-from soa_actions import soa_robot
+from soa_functions import soa_robot
 
 
 class GripperServer(Node):

@@ -7,7 +7,7 @@ Joint names may be specified in the goal; if omitted, all 5 arm joints are assum
 in order: shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll.
 
 Usage:
-    ros2 run soa_actions move_to_joint_states_server
+    ros2 run soa_functions move_to_joint_states_server
 """
 
 import time
@@ -22,7 +22,7 @@ from rclpy.node import Node
 from pymoveit2 import MoveIt2, MoveIt2State
 
 from soa_interfaces.action import MoveToJointStates
-from soa_actions import soa_robot
+from soa_functions import soa_robot
 
 
 # Joint limits from soa_description/urdf/soa_macro.xacro

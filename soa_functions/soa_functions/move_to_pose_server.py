@@ -8,7 +8,7 @@ Implements a fallback strategy for the 5-DOF arm:
   2. Fall back to position-only IK if full pose planning fails
 
 Usage:
-    ros2 run soa_actions move_to_pose_server
+    ros2 run soa_functions move_to_pose_server
 """
 
 import math
@@ -24,7 +24,7 @@ from rclpy.node import Node
 from pymoveit2 import MoveIt2, MoveIt2State
 
 from soa_interfaces.action import MoveToPose
-from soa_actions import soa_robot
+from soa_functions import soa_robot
 
 
 class MoveToPoseServer(Node):

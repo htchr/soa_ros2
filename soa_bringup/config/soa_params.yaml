@@ -8,7 +8,7 @@
   ros__parameters:
     follower:
       id: "gix-follower1"
-      usb_port: "/dev/ttyACM3"
+      usb_port: "/dev/ttyACM2"
       calibration_dir: "/home/ubuntu/techin517/huggingface/lerobot/calibration/robots/so101_follower"
 
     leader:

@@ -3,7 +3,8 @@ sudo apt-get install -y \
     ros-humble-realsense2-* \
     ros-humble-moveit \
     ros-humble-ros2-control \
-    ros-humble-ros2-controllers
+    ros-humble-ros2-controllers \
+    ros-humble-apriltag-ros
 
 rosdep init
 rosdep update

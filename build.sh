@@ -4,8 +4,9 @@ sudo apt-get install -y \
     ros-humble-moveit \
     ros-humble-ros2-control \
     ros-humble-ros2-controllers \
-    ros-humble-apriltag-ros
+    ros-humble-apriltag-ros \
+    ros-humble-topic-tools
 
-rosdep init
+sudo rosdep init
 rosdep update
 rosdep install --from-paths . --ignore-src -r -y

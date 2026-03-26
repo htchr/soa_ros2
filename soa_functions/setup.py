@@ -30,6 +30,7 @@ setup(
             'controller_switcher = soa_functions.controller_switcher:main',
             'save_pose = soa_functions.save_pose:main',
             'save_joint_states = soa_functions.save_joint_states:main',
+            'planning_scene = soa_functions.planning_scene:main',
         ],
     },
 )

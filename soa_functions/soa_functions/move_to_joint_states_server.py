@@ -88,10 +88,13 @@ class MoveToJointStatesServer(Node):
 
         self.get_logger().info('MoveToJointStates action server ready')
 
-    def _wait_until_executed(self):
-        """Wait for MoveIt2 execution without rclpy.spin_once() conflict."""
+    def _wait_and_publish_feedback(self, goal_handle, joint_names, target_positions):
+        """Wait for MoveIt2 execution, publishing feedback each iteration."""
         while self._moveit2.query_state() != MoveIt2State.IDLE:
+            self._publish_feedback(goal_handle, joint_names, target_positions)
             time.sleep(0.1)
+        # Publish one final feedback with the settled joint error
+        self._publish_feedback(goal_handle, joint_names, target_positions)
         return self._moveit2.motion_suceeded
 
     def _execute_callback(self, goal_handle):
@@ -174,9 +177,7 @@ class MoveToJointStatesServer(Node):
 
         # --- Execute ---
         self._moveit2.execute(trajectory)
-        success = self._wait_until_executed()
-
-        self._publish_feedback(goal_handle, joint_names, joint_positions)
+        success = self._wait_and_publish_feedback(goal_handle, joint_names, joint_positions)
 
         if success:
             goal_handle.succeed()

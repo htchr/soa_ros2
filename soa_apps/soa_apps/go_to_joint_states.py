@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Iterate through a CSV of joint states and drive the SOA arm + gripper to each row in order.
 

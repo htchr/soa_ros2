@@ -84,13 +84,16 @@ class MoveToPoseServer(Node):
 
         self.get_logger().info('MoveToPose action server ready')
 
-    def _wait_until_executed(self):
-        """Wait for MoveIt2 execution without rclpy.spin_once() conflict."""
+    def _wait_and_publish_feedback(self, goal_handle, target_position):
+        """Wait for MoveIt2 execution, publishing feedback each iteration."""
         while self._moveit2.query_state() != MoveIt2State.IDLE:
+            self._publish_feedback(goal_handle, target_position)
             time.sleep(0.1)
+        # Publish one final feedback with the settled position
+        self._publish_feedback(goal_handle, target_position)
         return self._moveit2.motion_suceeded
 
-    def _plan_and_execute(self, position, quat_xyzw=None,
+    def _plan_and_execute(self, goal_handle, position, quat_xyzw=None,
                           tol_pos=0.01, tol_orient=0.1,
                           planning_time=None) -> bool:
         """Plan and execute a single motion attempt. Returns True on success."""
@@ -124,7 +127,7 @@ class MoveToPoseServer(Node):
             return False
 
         self._moveit2.execute(trajectory)
-        return self._wait_until_executed()
+        return self._wait_and_publish_feedback(goal_handle, position)
 
     def _execute_callback(self, goal_handle):
         self.get_logger().info('Received MoveToPose goal')
@@ -206,6 +209,7 @@ class MoveToPoseServer(Node):
         for i, (label, quat, tp, to, pt) in enumerate(attempts):
             self.get_logger().info(label)
             success = self._plan_and_execute(
+                goal_handle=goal_handle,
                 position=position,
                 quat_xyzw=quat,
                 tol_pos=tp,
@@ -213,7 +217,6 @@ class MoveToPoseServer(Node):
                 planning_time=pt,
             )
             if success:
-                self._publish_feedback(goal_handle, position)
                 goal_handle.succeed()
                 result.success = True
                 result.message = success_messages[i]

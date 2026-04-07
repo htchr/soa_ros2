@@ -40,7 +40,6 @@ Arguments:
 ```bash
 ros2 launch soa_moveit_config soa_moveit_bringup.launch.py
 ```
-Launch the follower arm using the joint trajectory controller and Moveit
 
 **Bi-manual Arm Bringup**
 
@@ -57,7 +56,6 @@ Arguments:
 ```bash
 ros2 launch bi_soa_moveit_config bi_soa_moveit_bringup.launch.py
 ```
-Launch dual follower arms using the joint trajectory controller and Moveit
 
 
 ### Rosetta
@@ -104,14 +102,3 @@ rosetta_interfaces/action/RunPolicy "{prompt: 'your prompt'}"
 ## License
 
 [LICENSE](LICENSE)
-
-# working rosetta lerobot inference with the following packages
-
-- lerobot: 0f551df8f4bad4c504e395ea3df74fc5f714016f
-- feetech_ros2_driver: e424839f0fb23cc0b0ade8d6e5ea166e30811356
-- rosetta: e0e6be11a80f6a75f055d6e0ed20fef39434485e
-- lerobot-robot-rosetta: e4ed91ee5cd58c0163dabf0af699d3e3c1f193dc
-- lerobot-teleoperator-rosetta cc2f76b326f6c8bb12ee519a0980c19286c994e9
-- rosetta_interfaces: 90e979108b9b8cdbe791697ee9a338192e16e9fc
-
-

@@ -8,10 +8,10 @@
   ros__parameters:
     follower:
       id: "soa-follower2"
-      usb_port: "/dev/ttyACM2"
+      usb_port: "/dev/ttyACM3"
       calibration_dir: "/home/ubuntu/techin517/huggingface/lerobot/calibration/robots/so101_follower"
 
     leader:
       id: "soa-leader2"
-      usb_port: "/dev/ttyACM3"
+      usb_port: "/dev/ttyACM1"
       calibration_dir: "/home/ubuntu/techin517/huggingface/lerobot/calibration/teleoperators/so101_leader"

@@ -24,9 +24,6 @@ setup(
         # RViz configs
         (os.path.join('share', package_name, 'rviz'),
             glob('rviz/*.rviz')),
-        # Rosetta contracts
-        (os.path.join('share', package_name, 'rosetta_contracts'),
-            glob('rosetta_contracts/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

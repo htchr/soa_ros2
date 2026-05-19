@@ -16,10 +16,10 @@
 
     left_leader:
       id: "soa-leader1"
-      usb_port: "/dev/ttyACM0"
+      usb_port: "/dev/ttyACM1"
       calibration_dir: "/home/ubuntu/techin517/huggingface/lerobot/calibration/teleoperators/so101_leader"
 
     right_leader:
       id: "soa-leader2"
-      usb_port: "/dev/ttyACM1"
+      usb_port: "/dev/ttyACM0"
       calibration_dir: "/home/ubuntu/techin517/huggingface/lerobot/calibration/teleoperators/so101_leader"

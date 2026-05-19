@@ -20,14 +20,14 @@ cameras:
     camera_type: usb_camera
     param_path: soa_usb_cam.yaml
     attached_to: left_follower
-    video_device: /dev/video2
+    video_device: /dev/video8
     frame_id: follower_left_gripper_frame_link
 
   - name: wrist_cam_right
     camera_type: usb_camera
     param_path: soa_usb_cam.yaml
     attached_to: right_follower
-    video_device: /dev/video0
+    video_device: /dev/video6
     frame_id: follower_right_gripper_frame_link
 
   - name: overhead_cam

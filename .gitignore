@@ -13,3 +13,4 @@ dist/
 *.bag
 COLCON_IGNORE
 *CLASS*
+working.md

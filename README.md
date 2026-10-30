@@ -6,7 +6,7 @@
 
 ```bash
 cd ros2_ws/src
-git clone --recursive <>
+git clone --recursive https://github.com/htchr/soa_ros2.git
 ./soa_ros2/build.sh
 ```
 

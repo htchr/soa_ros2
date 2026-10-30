@@ -1,0 +1,36 @@
+# vcstool manifest — single source of truth for the external ROS packages that
+# are cloned into /home/ubuntu/colcon_ws/src/ and pre-built into the image.
+#
+# soa_ros2 itself is NOT listed here: it is bind-mounted at runtime (together
+# with its feetech_ros2_driver submodule) at src/soa_ros2.
+#
+# Import with:  vcs import src < soa.repos
+repositories:
+  lerobot-robot-rosetta:
+    type: git
+    url: https://github.com/iblnkn/lerobot-robot-rosetta.git
+  lerobot-teleoperator-rosetta:
+    type: git
+    url: https://github.com/iblnkn/lerobot-teleoperator-rosetta.git
+  rosetta:
+    type: git
+    url: https://github.com/iblnkn/rosetta.git
+  rosetta_interfaces:
+    type: git
+    url: https://github.com/iblnkn/rosetta_interfaces.git
+  pymoveit2:
+    type: git
+    url: https://github.com/AndrejOrsula/pymoveit2.git
+  warehouse_ros_mongo:
+    type: git
+    url: https://github.com/moveit/warehouse_ros_mongo.git
+    version: ros2
+  yolo_ros:
+    type: git
+    url: https://github.com/mgonzs13/yolo_ros.git
+  ros2_handeye_calibration:
+    type: git
+    url: https://github.com/GIXLabs/ros2_handeye_calibration.git
+  aruco_tracker_ros2:
+    type: git
+    url: https://github.com/GIXLabs/aruco_tracker_ros2.git

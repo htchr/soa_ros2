@@ -1,0 +1,75 @@
+# Single source of truth for the soa_ros2 container's runtime configuration.
+#
+# Used directly from the terminal via docker/container.sh, and referenced by
+# .devcontainer/devcontainer.json so the VS Code devcontainer runs the exact
+# same container. Relative paths resolve against this file's directory (docker/),
+# so `..` is the repository root (the soa_ros2 package).
+
+name: soa_ros2
+
+services:
+  soa:
+    image: soa_ros2:humble
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: humble
+        # Match the container's `ubuntu` user to the host user so files created
+        # in the container are editable from the host without sudo. container.sh
+        # exports HOST_UID/HOST_GID; .env supplies defaults for the devcontainer.
+        USER_UID: "${HOST_UID:-1000}"
+        USER_GID: "${HOST_GID:-1000}"
+
+    # Proper PID 1 / signal handling for `sleep infinity` + exec sessions.
+    init: true
+
+    # Privileged + host devices are required for the USB-serial latency tweaks,
+    # v4l2 camera access, and udev in setup-runtime.sh.
+    privileged: true
+    network_mode: host
+    stop_grace_period: 5s
+
+    environment:
+      DISPLAY: "${DISPLAY:-:0}"
+      # NVIDIA / GPU
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      # GUI (rviz, rerun, moveit) + rendering backends
+      QT_X11_NO_MITSHM: "1"
+      WGPU_BACKEND: gl
+      MUJOCO_GL: egl
+      # USB / lerobot
+      LIBUSB_DEBUG: "3"
+      # ROS 2
+      ROS_DISTRO: humble
+      ROS_LOCALHOST_ONLY: "1"
+      # Misc
+      HF_USER: ubuntu
+      XDG_RUNTIME_DIR: /tmp/runtime-ubuntu
+      PYTHONUNBUFFERED: "1"
+
+    volumes:
+      # The project itself — live-mounted so edits persist after the container exits.
+      - ..:/home/ubuntu/colcon_ws/src/soa_ros2
+      # GUI, devices, udev, and host time.
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev:/dev
+      - /etc/udev:/etc/udev:ro
+      - /run/udev:/run/udev:ro
+      - /etc/localtime:/etc/localtime:ro
+
+    # GPU access via the NVIDIA Container Toolkit. Comment this block out on a
+    # machine without an NVIDIA GPU / the toolkit installed (see docker/README.md).
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # Keep the container alive; work happens via `container.sh enter` / the
+    # devcontainer. First-run build + per-start device fixes are run by the
+    # scripts in docker/scripts/.
+    command: ["sleep", "infinity"]

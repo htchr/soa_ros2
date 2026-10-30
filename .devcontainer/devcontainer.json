@@ -1,0 +1,35 @@
+{
+  // VS Code devcontainer for soa_ros2.
+  //
+  // This is just a thin wrapper: the actual container configuration lives in
+  // docker/docker-compose.yml (the single source of truth), and the first-run
+  // build + per-start device fixes reuse the exact same scripts as the terminal
+  // workflow (docker/container.sh). Open the repo in VS Code and choose
+  // "Dev Containers: Reopen in Container".
+  "name": "soa_ros2",
+  "dockerComposeFile": ["../docker/docker-compose.yml"],
+  "service": "soa",
+  "workspaceFolder": "/home/ubuntu/colcon_ws/src/soa_ros2",
+  "remoteUser": "ubuntu",
+  // Keep the compose `command` (sleep infinity); don't override it.
+  "overrideCommand": false,
+
+  // Build the mounted workspace once, then apply device fixes on every start.
+  // (Same scripts container.sh runs.)
+  "postCreateCommand": "bash docker/scripts/build-workspace.sh",
+  "postStartCommand": "bash docker/scripts/setup-runtime.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-iot.vscode-ros",
+        "ms-vscode.cpptools",
+        "twxs.cmake",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
